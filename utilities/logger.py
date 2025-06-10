@@ -1,67 +1,58 @@
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
 from loguru import logger
+from loguru._handler import Message
 
-# log paths
+from utilities.env_settings import env_settings
+
+# log directory and file path
 log_path = Path(__file__).resolve().parent.parent / "reports"
 log_path.mkdir(parents=True, exist_ok=True)
-
 timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-debug_log_file = log_path / f"debug_{timestamp}.json"
-info_log_file = log_path / f"info_{timestamp}.json"
+log_file = log_path / f"log_{timestamp}.json"
+
+# log level from environment variable
+log_level = env_settings.LOG_LEVEL
 
 
-def make_debug_sink(log_file):
-    def sink(message):
+def make_sink(log_file: Path) -> Callable[[Message], None]:
+    """
+    Creates a simplified JSON log sink that writes log entries
+    with timestamp, level, and message.
+
+    :param log_file: Path where log entries will be saved
+    :return: A sink function compatible with loguru
+    """
+
+    def sink(message: Message) -> None:
+        """
+        Formats and writes a single log message to file.
+
+        :param message: Loguru Message object containing log data
+        """
         record = message.record
         data = {
             "time": record["time"].strftime("%Y-%m-%d %H:%M:%S"),
             "level": record["level"].name,
-            "test": record["name"],
-            "function": record["function"],
-            "file": record["file"].path,
-            "line": record["line"],
-            "elapsed": f"{record['elapsed'].total_seconds():.3f}s",
             "message": record["message"],
         }
         with open(log_file, "a", encoding="utf-8") as f:
-            f.write(json.dumps(data, indent=2) + "\n")
+            f.write(json.dumps(data) + "\n")
 
     return sink
 
 
-def make_info_sink(log_file):
-    def sink(message):
-        record = message.record
-        data = {
-            "time": record["time"].strftime("%Y-%m-%d %H:%M:%S"),
-            "level": record["level"].name,
-            "test": record["name"],
-            "function": record["function"],
-            "message": record["message"],
-        }
-        with open(log_file, "a", encoding="utf-8") as f:
-            f.write(json.dumps(data, indent=2) + "\n")
-
-    return sink
-
-
+# loguru handler to avoid duplicate output
 logger.remove()
 
-# Debug sink
+# custom log handler with selected log level
 logger.add(
-    make_debug_sink(debug_log_file),
-    level="DEBUG",
-    filter=lambda record: record["level"].name == "DEBUG"
+    make_sink(log_file),
+    level=log_level
 )
 
-# Info sink
-logger.add(
-    make_info_sink(info_log_file),
-    level="INFO",
-    filter=lambda record: record["level"].name == "INFO"
-)
-
+# export the configured logger
 log = logger
