@@ -98,8 +98,8 @@ def browser_type(playwright: Playwright, browser_name: str) -> BrowserType:
     Retrieves browser type object from Playwright using CLI option.
 
     :param playwright: Playwright instance
-    :param browser_name: String name of browser type
-    :return: Browser type object (chromium, firefox, webkit)
+    :param browser_name: String name of a browser type
+    :return: object (chromium, firefox, webkit)
     """
 
     return getattr(playwright, browser_name)
@@ -109,7 +109,7 @@ def browser_type(playwright: Playwright, browser_name: str) -> BrowserType:
 def browser(
         browser_type: BrowserType,
         browser_type_launch_args: Dict[str, bool]
-) -> Browser:
+) -> Generator[Browser, Any, None]:
     """
     Launches a browser instance for the test session.
 
@@ -129,7 +129,7 @@ def context(
         browser_context_args: Dict[str, Any],
         request: SubRequest,
         page: Page
-) -> BrowserContext:
+) -> Generator[BrowserContext, Any, None]:
     """
     Creates a new browser context for each test function,
     saves video if available after test.
