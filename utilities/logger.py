@@ -9,7 +9,9 @@ from loguru._handler import Message
 from utilities.env_settings import env_settings
 
 # log directory and file path
-log_path = Path(__file__).resolve().parent.parent / "reports"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+log_path = PROJECT_ROOT / "reports"
+
 log_path.mkdir(parents=True, exist_ok=True)
 timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 log_file = log_path / f"log_{timestamp}.json"
