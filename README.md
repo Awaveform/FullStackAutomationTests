@@ -17,9 +17,12 @@ cd FullStackAutomationTests
 
 ```bash
 python -m venv .venv
-. .venv\Scripts\activate
 pip install -r requirements.txt
 playwright install
+```
+
+```bash
+. .\.venv\Scripts\Activate.ps1
 ```
 
 > Make sure Python 3.12+ is installed and added to PATH.
