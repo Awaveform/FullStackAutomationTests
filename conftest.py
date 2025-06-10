@@ -10,6 +10,9 @@ from playwright.sync_api import (
     Browser, BrowserType, BrowserContext, Page, Playwright
 )
 
+from pages.upload_page import UploadPage
+from utilities.env_settings import env_settings
+
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPORTS_DIR = PROJECT_ROOT / "reports"
 VIDEOS_DIR = REPORTS_DIR / "videos"
@@ -59,7 +62,7 @@ def browser_name(request: SubRequest) -> str:
 
 
 @pytest.fixture(scope="session")
-def browser_type_launch_args(request: SubRequest) -> Dict[str, bool]:
+def browser_type_launch_args(request: SubRequest) -> dict[str, str | Any]:
     """
     Constructs launch arguments for the browser instance.
 
@@ -68,7 +71,9 @@ def browser_type_launch_args(request: SubRequest) -> Dict[str, bool]:
     """
 
     return {
-        "headless": request.config.getoption("--headless")
+        "headless": request.config.getoption("--headless"),
+        "timeout": int(env_settings.PLAYWRIGHT_TIMEOUT),
+        "slow_mo": int(env_settings.PLAYWRIGHT_SLOWMO),
     }
 
 
@@ -192,3 +197,16 @@ def pytest_runtest_makereport(item: Item) -> Any:
     outcome = yield
     rep = outcome.get_result()
     setattr(item, f"rep_{rep.when}", rep)
+
+
+@pytest.fixture
+def upload_page(page) -> UploadPage:
+    """
+    Page object fixture for the upload page.
+    Automatically opens the page before returning the object.
+
+    :param page: Page fixture (required to bind context pages)
+    :return: An upload page object
+    """
+    upload = UploadPage(page)
+    return upload
