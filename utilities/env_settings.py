@@ -1,12 +1,14 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     PLAYWRIGHT_TIMEOUT: str
     PLAYWRIGHT_SLOWMO: str
+    HEADLESS: bool = Field(..., alias="HEADLESS")
 
     LOG_LEVEL: str
 

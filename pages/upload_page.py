@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import playwright
+import pytest
 from playwright.sync_api import Page, expect
 
 from utilities.env_settings import env_settings
@@ -82,5 +84,5 @@ class UploadPage:
 
         :param msg: Expected validation error message text
         """
-
-        expect(self.validation_message).to_have_text(msg)
+        with pytest.raises(playwright._impl._errors.Error):
+            expect(self.validation_message).to_have_text(msg)
