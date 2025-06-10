@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    PLAYWRIGHT_TIMEOUT: str
+    PLAYWRIGHT_SLOWMO: str
+
     LOG_LEVEL: str
 
     API_BASE: str

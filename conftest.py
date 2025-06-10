@@ -10,6 +10,9 @@ from playwright.sync_api import (
     Browser, BrowserType, BrowserContext, Page, Playwright
 )
 
+from pages.upload_page import UploadPage
+from utilities.env_settings import env_settings
+
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPORTS_DIR = PROJECT_ROOT / "reports"
 VIDEOS_DIR = REPORTS_DIR / "videos"
@@ -49,7 +52,7 @@ def pytest_configure(config: Config) -> None:
 @pytest.fixture(scope="session")
 def browser_name(request: SubRequest) -> str:
     """
-    Returns the selected browser type via --browser CLI option.
+    Returns the selected browser type via a --browser CLI option.
 
     :param request: Pytest request object
     :return: Browser name as string
@@ -59,7 +62,7 @@ def browser_name(request: SubRequest) -> str:
 
 
 @pytest.fixture(scope="session")
-def browser_type_launch_args(request: SubRequest) -> Dict[str, bool]:
+def browser_type_launch_args(request: SubRequest) -> dict[str, str | Any]:
     """
     Constructs launch arguments for the browser instance.
 
@@ -68,7 +71,9 @@ def browser_type_launch_args(request: SubRequest) -> Dict[str, bool]:
     """
 
     return {
-        "headless": request.config.getoption("--headless")
+        "headless": request.config.getoption("--headless"),
+        "timeout": int(env_settings.PLAYWRIGHT_TIMEOUT),
+        "slow_mo": int(env_settings.PLAYWRIGHT_SLOWMO),
     }
 
 
@@ -98,8 +103,8 @@ def browser_type(playwright: Playwright, browser_name: str) -> BrowserType:
     Retrieves browser type object from Playwright using CLI option.
 
     :param playwright: Playwright instance
-    :param browser_name: String name of browser type
-    :return: Browser type object (chromium, firefox, webkit)
+    :param browser_name: String name of a browser type
+    :return: object (chromium, firefox, webkit)
     """
 
     return getattr(playwright, browser_name)
@@ -109,7 +114,7 @@ def browser_type(playwright: Playwright, browser_name: str) -> BrowserType:
 def browser(
         browser_type: BrowserType,
         browser_type_launch_args: Dict[str, bool]
-) -> Browser:
+) -> Generator[Browser, Any, None]:
     """
     Launches a browser instance for the test session.
 
@@ -129,7 +134,7 @@ def context(
         browser_context_args: Dict[str, Any],
         request: SubRequest,
         page: Page
-) -> BrowserContext:
+) -> Generator[BrowserContext, Any, None]:
     """
     Creates a new browser context for each test function,
     saves video if available after test.
@@ -181,15 +186,27 @@ def page(context: BrowserContext, request: SubRequest) -> (
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item: Item, call: Any) -> Any:
+def pytest_runtest_makereport(item: Item) -> Any:
     """
     Pytest hook to attach a test result (rep_setup/rep_call/rep_teardown)
     to the test item for later access.
 
     :param item: Test function item
-    :param call: Call phase
     """
 
     outcome = yield
     rep = outcome.get_result()
     setattr(item, f"rep_{rep.when}", rep)
+
+
+@pytest.fixture
+def upload_page(page) -> UploadPage:
+    """
+    Page object fixture for the upload page.
+    Automatically opens the page before returning the object.
+
+    :param page: Page fixture (required to bind context pages)
+    :return: An upload page object
+    """
+    upload = UploadPage(page)
+    return upload
