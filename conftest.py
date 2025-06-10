@@ -2,10 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from utilities.env_settings import settings, Settings
-
-config: Settings  # module-level declaration for linter support
-
 
 def pytest_addoption(parser):
     parser.addoption("--headless", action="store_true", default=False, help="Run headless")
