@@ -49,7 +49,7 @@ def pytest_configure(config: Config) -> None:
 @pytest.fixture(scope="session")
 def browser_name(request: SubRequest) -> str:
     """
-    Returns the selected browser type via --browser CLI option.
+    Returns the selected browser type via a --browser CLI option.
 
     :param request: Pytest request object
     :return: Browser name as string
@@ -181,13 +181,12 @@ def page(context: BrowserContext, request: SubRequest) -> (
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item: Item, call: Any) -> Any:
+def pytest_runtest_makereport(item: Item) -> Any:
     """
     Pytest hook to attach a test result (rep_setup/rep_call/rep_teardown)
     to the test item for later access.
 
     :param item: Test function item
-    :param call: Call phase
     """
 
     outcome = yield
